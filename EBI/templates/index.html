@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="favicon-32x32.png" type="image/x-icon">
+    <title>Estoure o balão!</title>
+    <style>
+    body {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 80vh;
+        margin: 0;
+        background-color: #f0f0f0;
+    }
+
+    .balloon-container {
+        position: relative;
+    }
+
+    .corda {
+        width: 2px;
+        height: 100px;
+        background-color: #555;
+        position: absolute;
+        bottom: -72px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .balloon {
+        width: 150px;
+        height: 150px;
+        background: radial-gradient(circle at 50% 0%, #88d4e9 0%, #2d82b9 100%);
+        border-radius: 50%;
+        position: absolute;
+        bottom: 322px; /* Ajuste a altura do balão aqui */
+        left: calc(50% - 75px);
+        cursor: pointer;
+    }
+
+    .pop {
+        background-color: #fff;
+        width: 200px;
+        padding: 10px;
+        border-radius: 5px;
+        position: absolute;
+        bottom: 170px;
+        left: calc(50% - 100px);
+        display: none;
+        text-align: center;
+        box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+        z-index: 1;
+    }
+
+    .pop:before,
+    .pop:after {
+        content: '';
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        background-color: #333;
+        border-radius: 50%;
+    }
+
+    .pop:before {
+        top: -8px;
+        left: 92px;
+    }
+
+    .pop:after {
+        top: -8px;
+        left: 108px;
+    }
+
+    .balloon-container:hover .pop {
+        display: block;
+    }
+    </style>
+</head>
+<body>
+    <div class="balloon">
+        <div class="corda"></div>
+        <div class="pop"></div>
+    </div>
+    
+    <div class="cpf-container" id="cpf-container">
+        <input type="text" id="cpf-input" placeholder="Digite seu CPF">
+        <button id="confirm-button">Confirmar</button>
+    </div>
+    
+    <script>
+        const confirmButton = document.getElementById('confirm-button');
+        const cpfInput = document.getElementById('cpf-input');
+    
+        confirmButton.addEventListener('click', async () => {
+            const cpf = cpfInput.value;
+            const response = await fetch(`/check-cpf/${cpf}`);
+            const data = await response.json();
+    
+            if (!data.exists) {
+                const storeResponse = await fetch(`/store-cpf/${cpf}`, { method: 'POST' });
+                const storeData = await storeResponse.json();
+                if (storeData.success) {
+                    // CPF válido e armazenado com sucesso
+                    const balloon = document.querySelector('.balloon');
+                    const pop = document.querySelector('.pop');
+                    let isBalloonPopped = false;
+                    
+                    // Função para estourar o balão e mostrar um prêmio
+                    function popBalloon() {
+                      if (!isBalloonPopped) {
+                        isBalloonPopped = true;
+                        balloon.style.animation = 'none'; // Parar animação de subida
+                        pop.style.display = 'block';    
+                    
+                        // Lista de prêmios
+                    const prizes = [
+                      'Você ganhou um desconto de 10% na próxima compra!',
+                      'Parabéns! Você ganhou um brinde exclusivo!',
+                      'Infelizmente, você não ganhou nada desta vez.'
+                    ];
+    
+
+                        // Escolher um prêmio aleatoriamente
+                        const randomPrize = prizes[Math.floor(Math.random() * prizes.length)];
+                        pop.innerHTML = randomPrize;
+                      }
+                    }
+    
+                    // Adicionar evento de clique ao balão
+                    balloon.addEventListener('click', popBalloon);
+                } else {
+                    // CPF já foi usado
+                    alert('CPF já foi usado anteriormente.');
+                }
+            } else {
+                // CPF já foi usado
+                alert('CPF já foi usado anteriormente.');
+            }
+        });
+    </script>
+</body>
+</html>
